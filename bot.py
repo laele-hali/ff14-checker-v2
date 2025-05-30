@@ -7,7 +7,7 @@ import os
 
 # === Settings ===
 TOKEN = "YOUR_DISCORD_BOT_TOKEN"  # Replace with your bot token
-CHANNEL_NAME = "ff14-monitor"
+CHANNEL_NAME = "YOUR_DISCORD_CHANNEL_NAME" # Replace with your Discord channel name
 CHECK_INTERVAL = 300  # seconds
 
 intents = discord.Intents.default()
@@ -24,7 +24,7 @@ status_icons = {
 last_known_status = {}
 dc_world_map = {}
 
-LODESTONE_URL = "https://eu.finalfantasyxiv.com/lodestone/worldstatus/"
+LODESTONE_URL = "https://eu.finalfantasyxiv.com/lodestone/worldstatus/"  # currently set to use the eu. lodestone server, can configure this for the other regions if required
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 
