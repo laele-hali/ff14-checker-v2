@@ -56,10 +56,15 @@ Recommended permissions:
     Read Message History
 
 💬 Supported Commands
+
     !check list — 📋 Check the current status of tracked items in the JSON file
+
     !check all — 🌍 Check all known worlds from Lodestone
+
     !check <name> — 🔍 Check a specific world or data center
+
     !check add <name> — ➕ Add a world or DC to the tracked list
+
     !check remove <name> — 🗑️ Remove a world or DC from the tracked list
 
 🖥️ Run as a Background Service (Linux)
