@@ -77,4 +77,86 @@ def fetch_world_status(world_names):
 def resolve_tracked_items(tracked_items):
     """Expands DCs into worlds"""
     expanded = []
-    for item in tracke
+    for item in tracked_items:
+        if item in dc_world_map:
+            expanded.extend(dc_world_map[item])
+        else:
+            expanded.append(item)
+    return list(set(expanded))  # remove duplicates
+
+def format_status(status_map):
+    if "error" in status_map:
+        return status_map["error"]
+    return "\n".join(f"**{w}**: {i} {s}" for w, (s, i) in status_map.items())
+
+async def status_monitor():
+    await client.wait_until_ready()
+    channel = discord.utils.get(client.get_all_channels(), name=CHANNEL_NAME)
+    if not channel:
+        print(f"❌ Channel '{CHANNEL_NAME}' not found!")
+        return
+
+    while not client.is_closed():
+        tracked = load_tracked_items()
+        expanded = resolve_tracked_items(tracked)
+        result = fetch_world_status(expanded)
+        if "error" not in result:
+            for world, (status, icon) in result.items():
+                if last_known_status.get(world) != status:
+                    last_known_status[world] = status
+                    await channel.send(f"🔔 **{world}** status changed: {icon} {status}")
+        await asyncio.sleep(CHECK_INTERVAL)
+
+@client.event
+async def on_ready():
+    global dc_world_map
+    dc_world_map = fetch_world_data()
+    print(f"Logged in as {client.user}")
+    client.loop.create_task(status_monitor())
+
+@client.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    content = message.content.strip()
+    lower = content.lower()
+
+    if lower == "!check list":
+        items = load_tracked_items()
+        await message.channel.send("📋 Tracked items:\n" + "\n".join(items) if items else "No items tracked.")
+
+    elif lower.startswith("!check add "):
+        item = content[11:].title()
+        items = load_tracked_items()
+        if item not in items:
+            items.append(item)
+            save_tracked_items(items)
+            await message.channel.send(f"✅ Added `{item}` to tracked list.")
+        else:
+            await message.channel.send(f"`{item}` is already tracked.")
+
+    elif lower.startswith("!check remove "):
+        item = content[14:].title()
+        items = load_tracked_items()
+        if item in items:
+            items.remove(item)
+            save_tracked_items(items)
+            await message.channel.send(f"🗑️ Removed `{item}` from tracked list.")
+        else:
+            await message.channel.send(f"`{item}` is not in the tracked list.")
+
+    elif lower == "!check all":
+        items = load_tracked_items()
+        expanded = resolve_tracked_items(items)
+        result = fetch_world_status(expanded)
+        await message.channel.send(format_status(result))
+
+    elif lower.startswith("!check "):
+        item = content[7:].title()
+        worlds = dc_world_map.get(item, [item])
+        result = fetch_world_status(worlds)
+        await message.channel.send(format_status(result))
+
+# === Start the bot ===
+client.run(TOKEN)
