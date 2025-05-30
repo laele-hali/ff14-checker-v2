@@ -60,7 +60,7 @@ def fetch_world_status(world_names):
         status_map = {}
 
         for world in world_names:
-            entry = soup.find("a", text=world)
+            entry = soup.find("a", string=world)
             if not entry:
                 status_map[world] = ("Not found", "❓")
                 continue
